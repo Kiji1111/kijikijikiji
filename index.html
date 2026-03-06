@@ -2,147 +2,151 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<title>きじジャンプゲーム</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>きじジャンプ</title>
 
 <style>
 body{
-    margin:0;
-    text-align:center;
-    font-family:sans-serif;
-    background:linear-gradient(#aee1ff,#ffffff);
-}
-
-h1{
-    margin:10px;
+margin:0;
+text-align:center;
+font-family:sans-serif;
+background:linear-gradient(#aee1ff,#ffffff);
 }
 
 #game{
-    width:400px;
-    height:600px;
-    margin:auto;
-    background:linear-gradient(#87ceeb,#e0f7ff);
-    border:3px solid #333;
-    position:relative;
-    overflow:hidden;
+width:100%;
+max-width:400px;
+height:600px;
+margin:auto;
+background:linear-gradient(#87ceeb,#e0f7ff);
+border:3px solid #333;
+position:relative;
+overflow:hidden;
 }
 
 #bird{
-    position:absolute;
-    width:40px;
-    height:40px;
-    font-size:35px;
+position:absolute;
+font-size:35px;
 }
 
 .platform{
-    position:absolute;
-    width:80px;
-    height:10px;
-    background:#4caf50;
-    border-radius:5px;
+position:absolute;
+width:80px;
+height:10px;
+background:#4caf50;
+border-radius:5px;
 }
 
 #score{
-    font-size:20px;
-    margin-top:10px;
+font-size:20px;
+margin:10px;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🐦 きじジャンプゲーム</h1>
-<p>スペースキーでジャンプ！上に登ろう！</p>
+<h2>🐦きじジャンプ</h2>
+<p>画面をタップしてジャンプ</p>
 
 <div id="game">
 <div id="bird">🐦</div>
 </div>
 
-<div id="score">Score: 0</div>
+<div id="score">Score:0</div>
 
 <script>
 
-const game = document.getElementById("game");
-const bird = document.getElementById("bird");
-const scoreText = document.getElementById("score");
+const game = document.getElementById("game")
+const bird = document.getElementById("bird")
+const scoreText = document.getElementById("score")
 
-let birdY = 500;
-let velocity = 0;
-let gravity = 0.5;
-let platforms = [];
-let score = 0;
+let birdX = 180
+let birdY = 450
+let velocity = 0
+let gravity = 0.5
+let platforms = []
+let score = 0
 
-bird.style.left = "180px";
-
-function createPlatform(y){
-    const p = document.createElement("div");
-    p.className="platform";
-    p.style.left = Math.random()*320 + "px";
-    p.style.top = y + "px";
-    game.appendChild(p);
-    platforms.push(p);
+function createPlatform(x,y){
+const p=document.createElement("div")
+p.className="platform"
+p.style.left=x+"px"
+p.style.top=y+"px"
+game.appendChild(p)
+platforms.push(p)
 }
 
-for(let i=0;i<6;i++){
-    createPlatform(100*i);
+//最初の足場（ここに乗る）
+createPlatform(160,500)
+
+//他の足場
+for(let i=1;i<6;i++){
+createPlatform(Math.random()*300,500-i*100)
 }
 
-document.addEventListener("keydown",(e)=>{
-    if(e.code==="Space"){
-        velocity=-10;
-    }
-});
+bird.style.left=birdX+"px"
+bird.style.top=birdY+"px"
+
+function jump(){
+velocity=-10
+}
+
+document.addEventListener("touchstart",jump)
+document.addEventListener("mousedown",jump)
 
 function update(){
 
-    velocity += gravity;
-    birdY += velocity;
+velocity+=gravity
+birdY+=velocity
 
-    platforms.forEach(p=>{
-        let px = p.offsetLeft;
-        let py = p.offsetTop;
+platforms.forEach(p=>{
+let px=p.offsetLeft
+let py=p.offsetTop
 
-        if(
-            birdY+40 > py &&
-            birdY+40 < py+10 &&
-            180 > px-40 &&
-            180 < px+80 &&
-            velocity > 0
-        ){
-            velocity = -10;
-        }
-    });
+if(
+birdY+40>py &&
+birdY+40<py+10 &&
+birdX+20>px &&
+birdX<px+80 &&
+velocity>0
+){
+velocity=-10
+}
+})
 
-    if(birdY < 300){
-        let diff = 300 - birdY;
-        birdY = 300;
+if(birdY<250){
 
-        platforms.forEach(p=>{
-            p.style.top = (p.offsetTop + diff) + "px";
-        });
+let diff=250-birdY
+birdY=250
 
-        score += Math.floor(diff);
-        scoreText.innerText = "Score: " + score;
-    }
+platforms.forEach(p=>{
+p.style.top=(p.offsetTop+diff)+"px"
+})
 
-    platforms.forEach(p=>{
-        if(p.offsetTop > 600){
-            p.remove();
-            platforms.shift();
-            createPlatform(0);
-        }
-    });
-
-    if(birdY > 600){
-        alert("ゲームオーバー！ Score: "+score);
-        location.reload();
-    }
-
-    bird.style.top = birdY + "px";
-
-    requestAnimationFrame(update);
+score+=Math.floor(diff)
+scoreText.innerText="Score:"+score
 }
 
-update();
+platforms.forEach(p=>{
+if(p.offsetTop>600){
+p.remove()
+platforms.shift()
+createPlatform(Math.random()*300,0)
+}
+})
+
+if(birdY>600){
+alert("ゲームオーバー Score:"+score)
+location.reload()
+}
+
+bird.style.top=birdY+"px"
+
+requestAnimationFrame(update)
+}
+
+update()
 
 </script>
 
