@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きじのぼり</title>
+<title>きじのぼりゲーム</title>
 
 <style>
 
@@ -11,41 +11,39 @@ body{
 margin:0;
 text-align:center;
 font-family:sans-serif;
-background:linear-gradient(#aee1ff,#ffffff);
+background:linear-gradient(#87ceeb,#ffffff);
 }
 
 #game{
-width:100%;
-max-width:400px;
+width:400px;
 height:600px;
 margin:auto;
-background:linear-gradient(#87ceeb,#e0f7ff);
-border:3px solid #333;
+background:#cfefff;
+border:3px solid black;
 position:relative;
 overflow:hidden;
 }
 
 #bird{
-position:absolute;
 width:30px;
 height:30px;
-background:#ffcc00;
+background:orange;
 border-radius:50%;
+position:absolute;
 }
 
 .platform{
-position:absolute;
 width:80px;
-height:12px;
-background:#4caf50;
-border-radius:6px;
+height:10px;
+background:green;
+position:absolute;
 }
 
 .spike{
-position:absolute;
 width:20px;
 height:20px;
 background:red;
+position:absolute;
 clip-path:polygon(50% 0%,0% 100%,100% 100%);
 }
 
@@ -54,53 +52,46 @@ position:absolute;
 font-size:40px;
 }
 
-#score{
-font-size:20px;
-margin:10px;
-}
-
 </style>
 </head>
 
 <body>
 
-<h2>きじのぼり</h2>
+<h2>🐦きじのぼり</h2>
 <p>足場に飛び移って神様の家へ</p>
 
 <div id="game">
+
 <div id="bird"></div>
 <div id="goal">🏠</div>
-</div>
 
-<div id="score">高さ:0</div>
+</div>
 
 <script>
 
 const game=document.getElementById("game")
 const bird=document.getElementById("bird")
 const goal=document.getElementById("goal")
-const scoreText=document.getElementById("score")
 
-let birdX=180
-let birdY=520
-let velocity=0
+let x=180
+let y=520
+let vy=0
 let gravity=0.6
 
 let platforms=[]
 let spikes=[]
 let height=0
 
-bird.style.left=birdX+"px"
-bird.style.top=birdY+"px"
+bird.style.left=x+"px"
+bird.style.top=y+"px"
 
-goal.style.top="-2500px"
 goal.style.left="170px"
+goal.style.top="-2000px"
 
 function createPlatform(x,y){
 
-const p=document.createElement("div")
+let p=document.createElement("div")
 p.className="platform"
-
 p.style.left=x+"px"
 p.style.top=y+"px"
 
@@ -111,9 +102,8 @@ platforms.push(p)
 
 function createSpike(x,y){
 
-const s=document.createElement("div")
+let s=document.createElement("div")
 s.className="spike"
-
 s.style.left=x+"px"
 s.style.top=y+"px"
 
@@ -122,108 +112,91 @@ spikes.push(s)
 
 }
 
-//足場
-for(let i=0;i<20;i++){
+for(let i=0;i<15;i++){
 
-createPlatform(Math.random()*300,550-i*120)
-
-}
-
-//壁トゲ
-for(let i=0;i<20;i++){
+createPlatform(Math.random()*320,550-i*120)
 
 createSpike(0,550-i*120)
 createSpike(380,550-i*120)
 
 }
 
-//ジャンプ
 function jump(){
 
-if(velocity>-2){
-velocity=-12
+if(vy>-2){
+vy=-12
 }
 
 }
 
-//スマホ
+document.addEventListener("keydown",e=>{
+
+if(e.key==="ArrowLeft") x-=20
+if(e.key==="ArrowRight") x+=20
+if(e.key===" ") jump()
+
+})
+
 document.addEventListener("touchstart",e=>{
 
-let x=e.touches[0].clientX
+let tx=e.touches[0].clientX
 
-if(x<window.innerWidth/2){
-birdX-=30
+if(tx<window.innerWidth/2){
+x-=25
 }else{
-birdX+=30
+x+=25
 }
 
 jump()
 
 })
 
-//PC
-document.addEventListener("keydown",e=>{
-
-if(e.key==="ArrowLeft") birdX-=20
-if(e.key==="ArrowRight") birdX+=20
-if(e.key===" ") jump()
-
-})
-
 function update(){
 
-velocity+=gravity
-birdY+=velocity
+vy+=gravity
+y+=vy
 
-//画面端
-if(birdX<0) birdX=0
-if(birdX>370) birdX=370
+if(x<0)x=0
+if(x>370)x=370
 
-//足場
 platforms.forEach(p=>{
 
 let px=p.offsetLeft
 let py=p.offsetTop
 
 if(
-birdY+30>py &&
-birdY+30<py+12 &&
-birdX+15>px &&
-birdX<px+80 &&
-velocity>0
+y+30>py &&
+y+30<py+10 &&
+x+15>px &&
+x<px+80 &&
+vy>0
 ){
-
-velocity=-12
-
+vy=-12
 }
 
 })
 
-//トゲ
 spikes.forEach(s=>{
 
 let sx=s.offsetLeft
 let sy=s.offsetTop
 
 if(
-birdX+25>sx &&
-birdX<sx+20 &&
-birdY+25>sy &&
-birdY<sy+20
+x+25>sx &&
+x<sx+20 &&
+y+25>sy &&
+y<sy+20
 ){
-
 alert("トゲに当たった！ゲームオーバー")
 location.reload()
-
 }
 
 })
 
-//上スクロール
-if(birdY<250){
+if(y<250){
 
-let diff=250-birdY
-birdY=250
+let diff=250-y
+y=250
 
 platforms.forEach(p=>{
 p.style.top=(p.offsetTop+diff)+"px"
@@ -235,22 +208,19 @@ s.style.top=(s.offsetTop+diff)+"px"
 
 goal.style.top=(goal.offsetTop+diff)+"px"
 
-height+=Math.floor(diff)
-
-scoreText.innerText="高さ:"+height
+height+=diff
 
 }
 
-//ゴール
-if(height>2500){
+if(height>2000){
 
 alert("神様の家に到着！クリア！")
 location.reload()
 
 }
 
-bird.style.left=birdX+"px"
-bird.style.top=birdY+"px"
+bird.style.left=x+"px"
+bird.style.top=y+"px"
 
 requestAnimationFrame(update)
 
