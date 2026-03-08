@@ -3,18 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きじのぼりゲーム</title>
+<title>きじのぼり</title>
 
 <style>
+
 body{
 margin:0;
 text-align:center;
 font-family:sans-serif;
 background:linear-gradient(#aee1ff,#ffffff);
-}
-
-h2{
-margin:10px;
 }
 
 #game{
@@ -36,17 +33,17 @@ font-size:35px;
 .platform{
 position:absolute;
 width:80px;
-height:10px;
+height:12px;
 background:#4caf50;
-border-radius:5px;
+border-radius:6px;
 }
 
-#ground{
+.spike{
 position:absolute;
-width:100%;
+width:20px;
 height:20px;
-background:#8B5A2B;
-bottom:0;
+background:red;
+clip-path:polygon(50% 0%,0% 100%,100% 100%);
 }
 
 #goal{
@@ -55,8 +52,8 @@ font-size:40px;
 }
 
 #score{
-margin:10px;
 font-size:20px;
+margin:10px;
 }
 
 </style>
@@ -65,38 +62,36 @@ font-size:20px;
 <body>
 
 <h2>🐦きじのぼり</h2>
-<p>タップしてジャンプ！神様の家まで登ろう</p>
+<p>足場に飛び移って神様の家へ！</p>
 
 <div id="game">
-
 <div id="bird">🐦</div>
-<div id="ground"></div>
 <div id="goal">🏠✨</div>
-
 </div>
 
 <div id="score">高さ:0</div>
 
 <script>
 
-const game = document.getElementById("game")
-const bird = document.getElementById("bird")
-const goal = document.getElementById("goal")
-const scoreText = document.getElementById("score")
+const game=document.getElementById("game")
+const bird=document.getElementById("bird")
+const goal=document.getElementById("goal")
+const scoreText=document.getElementById("score")
 
-let birdX = 180
-let birdY = 540
-let velocity = 0
-let gravity = 0.6
+let birdX=180
+let birdY=520
+let velocity=0
+let gravity=0.6
 
 let platforms=[]
+let spikes=[]
 let height=0
 
 bird.style.left=birdX+"px"
 bird.style.top=birdY+"px"
 
-goal.style.top="-2000px"
-goal.style.left="160px"
+goal.style.top="-2500px"
+goal.style.left="170px"
 
 function createPlatform(x,y){
 
@@ -107,40 +102,79 @@ p.style.left=x+"px"
 p.style.top=y+"px"
 
 game.appendChild(p)
-
 platforms.push(p)
 
 }
 
-//足場を作る
-for(let i=1;i<20;i++){
+function createSpike(x,y){
+
+const s=document.createElement("div")
+s.className="spike"
+
+s.style.left=x+"px"
+s.style.top=y+"px"
+
+game.appendChild(s)
+spikes.push(s)
+
+}
+
+//足場生成
+for(let i=0;i<20;i++){
 
 createPlatform(Math.random()*300,550-i*120)
 
 }
 
+//壁トゲ
+for(let i=0;i<20;i++){
+
+createSpike(0,550-i*120)
+createSpike(380,550-i*120)
+
+}
+
+//ジャンプ
 function jump(){
 
-//地面または足場のときだけジャンプ
 if(velocity>-2){
 velocity=-12
 }
 
 }
 
-document.addEventListener("touchstart",jump)
-document.addEventListener("mousedown",jump)
+//スマホ操作
+document.addEventListener("touchstart",e=>{
+
+let x=e.touches[0].clientX
+
+if(x<window.innerWidth/2){
+birdX-=30
+}else{
+birdX+=30
+}
+
+jump()
+
+})
+
+//PC操作
+document.addEventListener("keydown",e=>{
+
+if(e.key==="ArrowLeft") birdX-=20
+if(e.key==="ArrowRight") birdX+=20
+if(e.key===" ") jump()
+
+})
 
 function update(){
 
 velocity+=gravity
 birdY+=velocity
 
-//地面
-if(birdY>540){
-birdY=540
-velocity=0
-}
+//画面端
+if(birdX<0) birdX=0
+if(birdX>360) birdX=360
 
 //足場判定
 platforms.forEach(p=>{
@@ -150,24 +184,50 @@ let py=p.offsetTop
 
 if(
 birdY+40>py &&
-birdY+40<py+10 &&
+birdY+40<py+12 &&
 birdX+20>px &&
 birdX<px+80 &&
 velocity>0
 ){
+
 velocity=-12
+
 }
 
 })
 
-//上に行くとスクロール
-if(birdY<300){
+//トゲ
+spikes.forEach(s=>{
 
-let diff=300-birdY
-birdY=300
+let sx=s.offsetLeft
+let sy=s.offsetTop
+
+if(
+birdX+30>sx &&
+birdX<sx+20 &&
+birdY+30>sy &&
+birdY<sy+20
+){
+
+alert("トゲに当たった！ゲームオーバー")
+location.reload()
+
+}
+
+})
+
+//上スクロール
+if(birdY<250){
+
+let diff=250-birdY
+birdY=250
 
 platforms.forEach(p=>{
 p.style.top=(p.offsetTop+diff)+"px"
+})
+
+spikes.forEach(s=>{
+s.style.top=(s.offsetTop+diff)+"px"
 })
 
 goal.style.top=(goal.offsetTop+diff)+"px"
@@ -178,15 +238,15 @@ scoreText.innerText="高さ:"+height
 
 }
 
-//ゴール
-if(height>2000){
+//クリア
+if(height>2500){
 
 alert("神様の家に到着！クリア！✨")
-
 location.reload()
 
 }
 
+bird.style.left=birdX+"px"
 bird.style.top=birdY+"px"
 
 requestAnimationFrame(update)
