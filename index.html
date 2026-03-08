@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きじのぼりゲーム</title>
+<title>きじのぼり</title>
 
 <style>
 
@@ -11,14 +11,14 @@ body{
 margin:0;
 text-align:center;
 font-family:sans-serif;
-background:linear-gradient(#87ceeb,#ffffff);
+background:#87ceeb;
 }
 
 #game{
 width:400px;
 height:600px;
 margin:auto;
-background:#cfefff;
+background:#dff4ff;
 border:3px solid black;
 position:relative;
 overflow:hidden;
@@ -57,8 +57,7 @@ font-size:40px;
 
 <body>
 
-<h2>🐦きじのぼり</h2>
-<p>足場に飛び移って神様の家へ</p>
+<h2>きじのぼり</h2>
 
 <div id="game">
 
@@ -69,18 +68,21 @@ font-size:40px;
 
 <script>
 
-const game=document.getElementById("game")
 const bird=document.getElementById("bird")
+const game=document.getElementById("game")
 const goal=document.getElementById("goal")
 
 let x=180
 let y=520
 let vy=0
-let gravity=0.6
+
+let gravity=0.7
 
 let platforms=[]
 let spikes=[]
-let height=0
+
+let left=false
+let right=false
 
 bird.style.left=x+"px"
 bird.style.top=y+"px"
@@ -88,26 +90,30 @@ bird.style.top=y+"px"
 goal.style.left="170px"
 goal.style.top="-2000px"
 
-function createPlatform(x,y){
+function createPlatform(px,py){
 
 let p=document.createElement("div")
 p.className="platform"
-p.style.left=x+"px"
-p.style.top=y+"px"
+
+p.style.left=px+"px"
+p.style.top=py+"px"
 
 game.appendChild(p)
+
 platforms.push(p)
 
 }
 
-function createSpike(x,y){
+function createSpike(px,py){
 
 let s=document.createElement("div")
 s.className="spike"
-s.style.left=x+"px"
-s.style.top=y+"px"
+
+s.style.left=px+"px"
+s.style.top=py+"px"
 
 game.appendChild(s)
+
 spikes.push(s)
 
 }
@@ -121,21 +127,118 @@ createSpike(380,550-i*120)
 
 }
 
-function jump(){
+document.addEventListener("keydown",e=>{
 
-if(vy>-2){
+if(e.key==="ArrowLeft") left=true
+if(e.key==="ArrowRight") right=true
+
+if(e.key===" ") vy=-12
+
+})
+
+document.addEventListener("keyup",e=>{
+
+if(e.key==="ArrowLeft") left=false
+if(e.key==="ArrowRight") right=false
+
+})
+
+document.addEventListener("touchstart",e=>{
+
+let tx=e.touches[0].clientX
+
+if(tx<window.innerWidth/2){
+x-=40
+}else{
+x+=40
+}
+
+vy=-12
+
+})
+
+function update(){
+
+if(left) x-=4
+if(right) x+=4
+
+vy+=gravity
+y+=vy
+
+if(x<0)x=0
+if(x>370)x=370
+
+platforms.forEach(p=>{
+
+let px=p.offsetLeft
+let py=p.offsetTop
+
+if(
+y+30>py &&
+y+30<py+10 &&
+x+15>px &&
+x<px+80 &&
+vy>0
+){
 vy=-12
 }
 
+})
+
+spikes.forEach(s=>{
+
+let sx=s.offsetLeft
+let sy=s.offsetTop
+
+if(
+x+25>sx &&
+x<sx+20 &&
+y+25>sy &&
+y<sy+20
+){
+alert("トゲに当たった！ゲームオーバー")
+location.reload()
 }
 
-document.addEventListener("keydown",e=>{
-
-if(e.key==="ArrowLeft") x-=20
-if(e.key==="ArrowRight") x+=20
-if(e.key===" ") jump()
-
 })
+
+if(y<250){
+
+let diff=250-y
+y=250
+
+platforms.forEach(p=>{
+p.style.top=(p.offsetTop+diff)+"px"
+})
+
+spikes.forEach(s=>{
+s.style.top=(s.offsetTop+diff)+"px"
+})
+
+goal.style.top=(goal.offsetTop+diff)+"px"
+
+}
+
+if(goal.offsetTop>200){
+
+alert("神様の家に到着！クリア！")
+location.reload()
+
+}
+
+bird.style.left=x+"px"
+bird.style.top=y+"px"
+
+requestAnimationFrame(update)
+
+}
+
+update()
+
+</script>
+
+</body>
+</html>
 
 document.addEventListener("touchstart",e=>{
 
