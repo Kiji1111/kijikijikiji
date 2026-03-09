@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>囚人脱走阻止ゲーム</title>
+<title>バトルアクションゲーム</title>
 
 <style>
 
@@ -11,13 +11,8 @@ body{
 margin:0;
 background:#222;
 color:white;
-font-family:sans-serif;
 text-align:center;
-}
-
-#info{
-font-size:20px;
-margin:10px;
+font-family:sans-serif;
 }
 
 canvas{
@@ -25,13 +20,13 @@ background:#333;
 border:4px solid white;
 }
 
-#controls{
-margin-top:10px;
+#ui{
+margin:10px;
 }
 
 button{
-font-size:24px;
-padding:10px 20px;
+font-size:18px;
+padding:10px;
 margin:5px;
 }
 
@@ -40,193 +35,156 @@ margin:5px;
 
 <body>
 
-<h2>🚓囚人脱走阻止ゲーム</h2>
+<h2>⚔ 前から来る敵を倒してゴール！</h2>
 
-<div id="info">
-捕まえた数: <span id="score">0</span> / 10 |
-残り時間: <span id="time">30</span>
+<div id="ui">
+攻撃ゲージ: <span id="power">0</span>/5
 </div>
 
-<canvas id="game" width="400" height="400"></canvas>
+<canvas id="game" width="500" height="300"></canvas>
 
-<div id="controls">
-<button onclick="move(0,-1)">↑</button><br>
-<button onclick="move(-1,0)">←</button>
-<button onclick="move(1,0)">→</button><br>
-<button onclick="move(0,1)">↓</button>
-</div>
+<br>
+
+<button onclick="attack()">攻撃</button>
+<button onclick="special()">必殺技</button>
 
 <script>
 
 const canvas=document.getElementById("game")
 const ctx=canvas.getContext("2d")
 
-const scoreText=document.getElementById("score")
-const timeText=document.getElementById("time")
+let player={x:50,y:200,hp:5}
 
-let score=0
-let time=30
+let enemies=[]
 
-//警察
-let police={x:200,y:200,size:15}
+let power=0
 
-//囚人
-let prisoners=[]
+let goal=450
 
-for(let i=0;i<3;i++){
-spawnPrisoner()
-}
+function spawnEnemy(){
 
-function spawnPrisoner(){
-
-prisoners.push({
-x:Math.random()*360+20,
-y:Math.random()*360+20,
-size:15
+enemies.push({
+x:500,
+y:200,
+hp:2
 })
 
 }
 
-//部屋の壁
-const walls=[
-{x:195,y:0,w:10,h:160},
-{x:195,y:240,w:10,h:160},
-{x:0,y:195,w:160,h:10},
-{x:240,y:195,w:160,h:10}
-]
+setInterval(spawnEnemy,2000)
 
-//ドア
-const doors=[
-{x:195,y:160,w:10,h:80},
-{x:160,y:195,w:80,h:10}
-]
+function attack(){
 
-function draw(){
+enemies.forEach(e=>{
 
-ctx.clearRect(0,0,400,400)
+if(Math.abs(e.x-player.x)<60){
 
-//部屋
-ctx.fillStyle="#555"
-walls.forEach(w=>{
-ctx.fillRect(w.x,w.y,w.w,w.h)
-})
+e.hp--
 
-//ドア
-ctx.fillStyle="yellow"
-doors.forEach(d=>{
-ctx.fillRect(d.x,d.y,d.w,d.h)
-})
+power++
 
-//警察
-ctx.fillStyle="blue"
-ctx.beginPath()
-ctx.arc(police.x,police.y,police.size,0,Math.PI*2)
-ctx.fill()
+if(power>5)power=5
 
-//囚人
-ctx.fillStyle="red"
-prisoners.forEach(p=>{
-ctx.beginPath()
-ctx.arc(p.x,p.y,p.size,0,Math.PI*2)
-ctx.fill()
-})
+document.getElementById("power").textContent=power
 
 }
-
-function move(dx,dy){
-
-police.x+=dx*10
-police.y+=dy*10
-
-//壁判定
-walls.forEach(w=>{
-if(police.x>w.x-15&&
-police.x<w.x+w.w+15&&
-police.y>w.y-15&&
-police.y<w.y+w.h+15){
-
-police.x-=dx*10
-police.y-=dy*10
-
-}
-})
-
-//捕まえる
-prisoners=prisoners.filter(p=>{
-
-let dist=Math.hypot(police.x-p.x,police.y-p.y)
-
-if(dist<20){
-
-score++
-scoreText.textContent=score
-spawnPrisoner()
-
-return false
-}
-
-return true
 
 })
 
 }
 
-document.addEventListener("keydown",e=>{
+function special(){
 
-if(e.key==="ArrowUp")move(0,-1)
-if(e.key==="ArrowDown")move(0,1)
-if(e.key==="ArrowLeft")move(-1,0)
-if(e.key==="ArrowRight")move(1,0)
+if(power>=5){
 
-})
+enemies=[]
 
-function movePrisoners(){
+power=0
 
-prisoners.forEach(p=>{
+document.getElementById("power").textContent=power
 
-p.x+=(Math.random()-0.5)*6
-p.y+=(Math.random()-0.5)*6
-
-p.x=Math.max(10,Math.min(390,p.x))
-p.y=Math.max(10,Math.min(390,p.y))
-
-})
+alert("必殺技！！全滅！")
 
 }
 
-setInterval(movePrisoners,200)
+}
 
-function loop(){
+function update(){
 
-draw()
+//敵移動
+enemies.forEach(e=>{
+e.x-=2
+})
 
-if(score>=10){
+//敵攻撃
+enemies.forEach(e=>{
 
-alert("囚人を全員捕まえた！クリア！")
+if(Math.abs(e.x-player.x)<20){
+
+player.hp--
+
+e.x+=40
+
+if(player.hp<=0){
+
+alert("やられた！ゲームオーバー")
 location.reload()
 
 }
+
+}
+
+})
+
+//倒された敵削除
+enemies=enemies.filter(e=>e.hp>0)
+
+//プレイヤー前進
+player.x+=0.3
+
+if(player.x>=goal){
+
+alert("ゴール！クリア！")
+location.reload()
+
+}
+
+}
+
+function draw(){
+
+ctx.clearRect(0,0,500,300)
+
+//地面
+ctx.fillStyle="green"
+ctx.fillRect(0,220,500,80)
+
+//ゴール
+ctx.fillStyle="yellow"
+ctx.fillRect(goal,180,10,40)
+
+//プレイヤー
+ctx.fillStyle="blue"
+ctx.fillRect(player.x,player.y,20,20)
+
+//敵
+ctx.fillStyle="red"
+enemies.forEach(e=>{
+ctx.fillRect(e.x,e.y,20,20)
+})
+
+}
+
+function loop(){
+
+update()
+draw()
 
 requestAnimationFrame(loop)
 
 }
 
 loop()
-
-//タイマー
-setInterval(()=>{
-
-time--
-timeText.textContent=time
-
-if(time<=0){
-
-alert("囚人に暗殺された…ゲームオーバー")
-location.reload()
-
-}
-
-},1000)
 
 </script>
 
