@@ -3,27 +3,44 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>押すだけゲーム</title>
+<title>スナイパーチャレンジ</title>
 
 <style>
 
 body{
+margin:0;
 text-align:center;
 font-family:sans-serif;
 background:#222;
 color:white;
 }
 
-button{
-font-size:40px;
-padding:30px 60px;
-margin-top:100px;
-cursor:pointer;
+#game{
+width:400px;
+height:600px;
+margin:auto;
+background:#333;
+border:3px solid white;
+position:relative;
+overflow:hidden;
+cursor:crosshair;
+}
+
+.target{
+width:40px;
+height:40px;
+background:red;
+border-radius:50%;
+position:absolute;
 }
 
 #score{
-font-size:30px;
-margin-top:20px;
+font-size:24px;
+margin:10px;
+}
+
+#bullets{
+font-size:20px;
 }
 
 </style>
@@ -31,34 +48,86 @@ margin-top:20px;
 
 <body>
 
-<h1>押すだけゲーム</h1>
-
-<button id="btn">押す</button>
+<h2>🎯スナイパーチャレンジ</h2>
 
 <div id="score">Score:0</div>
+<div id="bullets">弾:10</div>
+
+<div id="game"></div>
 
 <script>
 
-let score=0
-const btn=document.getElementById("btn")
+const game=document.getElementById("game")
 const scoreText=document.getElementById("score")
+const bulletsText=document.getElementById("bullets")
 
-btn.onclick=function(){
+let score=0
+let bullets=10
+let targets=[]
 
-//10%で爆発
-if(Math.random()<0.1){
+function createTarget(){
 
-alert("💥爆発した！ゲームオーバー\nScore:"+score)
-location.reload()
+let t=document.createElement("div")
+t.className="target"
 
-}else{
+t.style.left=Math.random()*360+"px"
+t.style.top=Math.random()*560+"px"
+
+game.appendChild(t)
+
+targets.push(t)
+
+}
+
+setInterval(createTarget,1000)
+
+game.addEventListener("click",e=>{
+
+if(bullets<=0)return
+
+bullets--
+
+bulletsText.innerText="弾:"+bullets
+
+let rect=game.getBoundingClientRect()
+
+let x=e.clientX-rect.left
+let y=e.clientY-rect.top
+
+targets.forEach((t,i)=>{
+
+let tx=t.offsetLeft
+let ty=t.offsetTop
+
+if(
+x>tx &&
+x<tx+40 &&
+y>ty &&
+y<ty+40
+){
 
 score++
 scoreText.innerText="Score:"+score
 
-}
+t.remove()
+targets.splice(i,1)
 
 }
+
+})
+
+if(bullets===0){
+
+setTimeout(()=>{
+
+alert("ゲーム終了！ Score:"+score)
+location.reload()
+
+},200)
+
+}
+
+})
 
 </script>
 
