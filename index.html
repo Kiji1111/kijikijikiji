@@ -3,53 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>きじのぼり</title>
+<title>押すだけゲーム</title>
 
 <style>
 
 body{
-margin:0;
 text-align:center;
 font-family:sans-serif;
-background:#87ceeb;
+background:#222;
+color:white;
 }
 
-#game{
-width:400px;
-height:600px;
-margin:auto;
-background:#dff4ff;
-border:3px solid black;
-position:relative;
-overflow:hidden;
-}
-
-#bird{
-width:30px;
-height:30px;
-background:orange;
-border-radius:50%;
-position:absolute;
-}
-
-.platform{
-width:80px;
-height:10px;
-background:green;
-position:absolute;
-}
-
-.spike{
-width:20px;
-height:20px;
-background:red;
-position:absolute;
-clip-path:polygon(50% 0%,0% 100%,100% 100%);
-}
-
-#goal{
-position:absolute;
+button{
 font-size:40px;
+padding:30px 60px;
+margin-top:100px;
+cursor:pointer;
+}
+
+#score{
+font-size:30px;
+margin-top:20px;
 }
 
 </style>
@@ -57,279 +31,34 @@ font-size:40px;
 
 <body>
 
-<h2>きじのぼり</h2>
+<h1>押すだけゲーム</h1>
 
-<div id="game">
+<button id="btn">押す</button>
 
-<div id="bird"></div>
-<div id="goal">🏠</div>
-
-</div>
+<div id="score">Score:0</div>
 
 <script>
 
-const bird=document.getElementById("bird")
-const game=document.getElementById("game")
-const goal=document.getElementById("goal")
+let score=0
+const btn=document.getElementById("btn")
+const scoreText=document.getElementById("score")
 
-let x=180
-let y=520
-let vy=0
+btn.onclick=function(){
 
-let gravity=0.7
+//10%で爆発
+if(Math.random()<0.1){
 
-let platforms=[]
-let spikes=[]
+alert("💥爆発した！ゲームオーバー\nScore:"+score)
+location.reload()
 
-let left=false
-let right=false
-
-bird.style.left=x+"px"
-bird.style.top=y+"px"
-
-goal.style.left="170px"
-goal.style.top="-2000px"
-
-function createPlatform(px,py){
-
-let p=document.createElement("div")
-p.className="platform"
-
-p.style.left=px+"px"
-p.style.top=py+"px"
-
-game.appendChild(p)
-
-platforms.push(p)
-
-}
-
-function createSpike(px,py){
-
-let s=document.createElement("div")
-s.className="spike"
-
-s.style.left=px+"px"
-s.style.top=py+"px"
-
-game.appendChild(s)
-
-spikes.push(s)
-
-}
-
-for(let i=0;i<15;i++){
-
-createPlatform(Math.random()*320,550-i*120)
-
-createSpike(0,550-i*120)
-createSpike(380,550-i*120)
-
-}
-
-document.addEventListener("keydown",e=>{
-
-if(e.key==="ArrowLeft") left=true
-if(e.key==="ArrowRight") right=true
-
-if(e.key===" ") vy=-12
-
-})
-
-document.addEventListener("keyup",e=>{
-
-if(e.key==="ArrowLeft") left=false
-if(e.key==="ArrowRight") right=false
-
-})
-
-document.addEventListener("touchstart",e=>{
-
-let tx=e.touches[0].clientX
-
-if(tx<window.innerWidth/2){
-x-=40
 }else{
-x+=40
-}
 
-vy=-12
-
-})
-
-function update(){
-
-if(left) x-=4
-if(right) x+=4
-
-vy+=gravity
-y+=vy
-
-if(x<0)x=0
-if(x>370)x=370
-
-platforms.forEach(p=>{
-
-let px=p.offsetLeft
-let py=p.offsetTop
-
-if(
-y+30>py &&
-y+30<py+10 &&
-x+15>px &&
-x<px+80 &&
-vy>0
-){
-vy=-12
-}
-
-})
-
-spikes.forEach(s=>{
-
-let sx=s.offsetLeft
-let sy=s.offsetTop
-
-if(
-x+25>sx &&
-x<sx+20 &&
-y+25>sy &&
-y<sy+20
-){
-alert("トゲに当たった！ゲームオーバー")
-location.reload()
-}
-
-})
-
-if(y<250){
-
-let diff=250-y
-y=250
-
-platforms.forEach(p=>{
-p.style.top=(p.offsetTop+diff)+"px"
-})
-
-spikes.forEach(s=>{
-s.style.top=(s.offsetTop+diff)+"px"
-})
-
-goal.style.top=(goal.offsetTop+diff)+"px"
+score++
+scoreText.innerText="Score:"+score
 
 }
 
-if(goal.offsetTop>200){
-
-alert("神様の家に到着！クリア！")
-location.reload()
-
 }
-
-bird.style.left=x+"px"
-bird.style.top=y+"px"
-
-requestAnimationFrame(update)
-
-}
-
-update()
-
-</script>
-
-</body>
-</html>
-
-document.addEventListener("touchstart",e=>{
-
-let tx=e.touches[0].clientX
-
-if(tx<window.innerWidth/2){
-x-=25
-}else{
-x+=25
-}
-
-jump()
-
-})
-
-function update(){
-
-vy+=gravity
-y+=vy
-
-if(x<0)x=0
-if(x>370)x=370
-
-platforms.forEach(p=>{
-
-let px=p.offsetLeft
-let py=p.offsetTop
-
-if(
-y+30>py &&
-y+30<py+10 &&
-x+15>px &&
-x<px+80 &&
-vy>0
-){
-vy=-12
-}
-
-})
-
-spikes.forEach(s=>{
-
-let sx=s.offsetLeft
-let sy=s.offsetTop
-
-if(
-x+25>sx &&
-x<sx+20 &&
-y+25>sy &&
-y<sy+20
-){
-alert("トゲに当たった！ゲームオーバー")
-location.reload()
-}
-
-})
-
-if(y<250){
-
-let diff=250-y
-y=250
-
-platforms.forEach(p=>{
-p.style.top=(p.offsetTop+diff)+"px"
-})
-
-spikes.forEach(s=>{
-s.style.top=(s.offsetTop+diff)+"px"
-})
-
-goal.style.top=(goal.offsetTop+diff)+"px"
-
-height+=diff
-
-}
-
-if(height>2000){
-
-alert("神様の家に到着！クリア！")
-location.reload()
-
-}
-
-bird.style.left=x+"px"
-bird.style.top=y+"px"
-
-requestAnimationFrame(update)
-
-}
-
-update()
 
 </script>
 
