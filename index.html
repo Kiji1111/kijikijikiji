@@ -3,30 +3,29 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>バトルアクションゲーム</title>
+<title>鳥アドベンチャー</title>
 
 <style>
 
 body{
 margin:0;
-background:#222;
-color:white;
+background:#87CEEB;
 text-align:center;
 font-family:sans-serif;
 }
 
 canvas{
-background:#333;
-border:4px solid white;
+background:#87CEEB;
+border:4px solid black;
 }
 
-#ui{
-margin:10px;
+#controls{
+margin-top:10px;
 }
 
 button{
-font-size:18px;
-padding:10px;
+font-size:20px;
+padding:10px 15px;
 margin:5px;
 }
 
@@ -35,116 +34,107 @@ margin:5px;
 
 <body>
 
-<h2>⚔ 前から来る敵を倒してゴール！</h2>
-
-<div id="ui">
-攻撃ゲージ: <span id="power">0</span>/5
-</div>
+<h2>🐦 鳥アドベンチャー</h2>
 
 <canvas id="game" width="500" height="300"></canvas>
 
-<br>
-
-<button onclick="attack()">攻撃</button>
-<button onclick="special()">必殺技</button>
+<div id="controls">
+<button onclick="left()">⬅</button>
+<button onclick="jump()">⬆ジャンプ</button>
+<button onclick="right()">➡</button>
+</div>
 
 <script>
 
 const canvas=document.getElementById("game")
 const ctx=canvas.getContext("2d")
 
-let player={x:50,y:200,hp:5}
+let worldWidth=3000
 
-let enemies=[]
-
-let power=0
-
-let goal=450
-
-function spawnEnemy(){
-
-enemies.push({
-x:500,
+let bird={
+x:50,
 y:200,
-hp:2
+vy:0,
+onGround:false
+}
+
+let camera=0
+
+let obstacles=[]
+
+//障害物生成
+for(let i=300;i<worldWidth;i+=250){
+
+obstacles.push({
+x:i,
+y:220,
+w:30,
+h:30
 })
 
 }
 
-setInterval(spawnEnemy,2000)
+let goal=2800
 
-function attack(){
+function left(){
+bird.x-=20
+}
 
-enemies.forEach(e=>{
+function right(){
+bird.x+=20
+}
 
-if(Math.abs(e.x-player.x)<60){
+function jump(){
 
-e.hp--
-
-power++
-
-if(power>5)power=5
-
-document.getElementById("power").textContent=power
+if(bird.onGround){
+bird.vy=-10
+bird.onGround=false
+}
 
 }
+
+document.addEventListener("keydown",e=>{
+
+if(e.key==="ArrowLeft")left()
+if(e.key==="ArrowRight")right()
+if(e.key==="ArrowUp")jump()
 
 })
-
-}
-
-function special(){
-
-if(power>=5){
-
-enemies=[]
-
-power=0
-
-document.getElementById("power").textContent=power
-
-alert("必殺技！！全滅！")
-
-}
-
-}
 
 function update(){
 
-//敵移動
-enemies.forEach(e=>{
-e.x-=2
-})
+//重力
+bird.vy+=0.5
+bird.y+=bird.vy
 
-//敵攻撃
-enemies.forEach(e=>{
+//地面
+if(bird.y>200){
+bird.y=200
+bird.vy=0
+bird.onGround=true
+}
 
-if(Math.abs(e.x-player.x)<20){
+//カメラ
+camera=bird.x-150
 
-player.hp--
+//障害物判定
+obstacles.forEach(o=>{
 
-e.x+=40
+if(bird.x+20>o.x &&
+bird.x<o.x+o.w &&
+bird.y+20>o.y){
 
-if(player.hp<=0){
-
-alert("やられた！ゲームオーバー")
+alert("障害物に当たった！ゲームオーバー")
 location.reload()
 
 }
 
-}
-
 })
 
-//倒された敵削除
-enemies=enemies.filter(e=>e.hp>0)
+//ゴール
+if(bird.x>goal){
 
-//プレイヤー前進
-player.x+=0.3
-
-if(player.x>=goal){
-
-alert("ゴール！クリア！")
+alert("ゴール！！")
 location.reload()
 
 }
@@ -159,19 +149,19 @@ ctx.clearRect(0,0,500,300)
 ctx.fillStyle="green"
 ctx.fillRect(0,220,500,80)
 
+//鳥
+ctx.fillStyle="orange"
+ctx.fillRect(bird.x-camera,bird.y,20,20)
+
+//障害物
+ctx.fillStyle="brown"
+obstacles.forEach(o=>{
+ctx.fillRect(o.x-camera,o.y,o.w,o.h)
+})
+
 //ゴール
 ctx.fillStyle="yellow"
-ctx.fillRect(goal,180,10,40)
-
-//プレイヤー
-ctx.fillStyle="blue"
-ctx.fillRect(player.x,player.y,20,20)
-
-//敵
-ctx.fillStyle="red"
-enemies.forEach(e=>{
-ctx.fillRect(e.x,e.y,20,20)
-})
+ctx.fillRect(goal-camera,180,20,40)
 
 }
 
