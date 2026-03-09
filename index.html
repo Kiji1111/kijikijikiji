@@ -1,16 +1,17 @@
+
 <!DOCTYPE html>
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>スナイパーチャレンジ</title>
+<title>囚人脱走ゲーム</title>
 
 <style>
 
 body{
 margin:0;
-text-align:center;
 font-family:sans-serif;
+text-align:center;
 background:#222;
 color:white;
 }
@@ -19,27 +20,26 @@ color:white;
 width:400px;
 height:600px;
 margin:auto;
-background:#333;
-border:3px solid white;
+display:grid;
+grid-template-columns:1fr 1fr;
+grid-template-rows:1fr 1fr;
+gap:4px;
+}
+
+.room{
+background:#444;
 position:relative;
 overflow:hidden;
-cursor:crosshair;
 }
 
-.target{
-width:40px;
-height:40px;
-background:red;
-border-radius:50%;
+.prisoner{
 position:absolute;
+font-size:30px;
+cursor:pointer;
 }
 
-#score{
-font-size:24px;
+#info{
 margin:10px;
-}
-
-#bullets{
 font-size:20px;
 }
 
@@ -48,86 +48,105 @@ font-size:20px;
 
 <body>
 
-<h2>🎯スナイパーチャレンジ</h2>
+<h2>🚔囚人脱走阻止ゲーム</h2>
 
-<div id="score">Score:0</div>
-<div id="bullets">弾:10</div>
+<div id="info">
+捕まえた数: <span id="score">0</span> / 10 |
+残り時間: <span id="time">30</span>
+</div>
 
-<div id="game"></div>
+<div id="game">
+<div class="room"></div>
+<div class="room"></div>
+<div class="room"></div>
+<div class="room"></div>
+</div>
 
 <script>
 
-const game=document.getElementById("game")
+const rooms=document.querySelectorAll(".room")
 const scoreText=document.getElementById("score")
-const bulletsText=document.getElementById("bullets")
+const timeText=document.getElementById("time")
 
 let score=0
-let bullets=10
-let targets=[]
+let time=30
 
-function createTarget(){
+function createPrisoner(){
 
-let t=document.createElement("div")
-t.className="target"
+let room=rooms[Math.floor(Math.random()*4)]
 
-t.style.left=Math.random()*360+"px"
-t.style.top=Math.random()*560+"px"
+let p=document.createElement("div")
+p.className="prisoner"
+p.innerText="🧑‍🦱"
 
-game.appendChild(t)
+p.style.left=Math.random()*120+"px"
+p.style.top=Math.random()*200+"px"
 
-targets.push(t)
+room.appendChild(p)
 
-}
-
-setInterval(createTarget,1000)
-
-game.addEventListener("click",e=>{
-
-if(bullets<=0)return
-
-bullets--
-
-bulletsText.innerText="弾:"+bullets
-
-let rect=game.getBoundingClientRect()
-
-let x=e.clientX-rect.left
-let y=e.clientY-rect.top
-
-targets.forEach((t,i)=>{
-
-let tx=t.offsetLeft
-let ty=t.offsetTop
-
-if(
-x>tx &&
-x<tx+40 &&
-y>ty &&
-y<ty+40
-){
+//クリックで捕まえる
+p.onclick=function(){
 
 score++
-scoreText.innerText="Score:"+score
+scoreText.innerText=score
 
-t.remove()
-targets.splice(i,1)
+p.remove()
 
-}
+if(score>=10){
 
-})
-
-if(bullets===0){
-
-setTimeout(()=>{
-
-alert("ゲーム終了！ Score:"+score)
+alert("囚人を全員捕まえた！クリア！")
 location.reload()
 
-},200)
+}
 
 }
 
-})
+//逃げ回る
+let move=setInterval(()=>{
+
+p.style.left=Math.random()*120+"px"
+p.style.top=Math.random()*200+"px"
+
+},800)
+
+//時間切れ
+setTimeout(()=>{
+
+clearInterval(move)
+
+if(p.parentNode){
+
+alert("囚人に暗殺された…ゲームオーバー")
+location.reload()
+
+}
+
+},30000)
+
+}
+
+setInterval(createPrisoner,1200)
+
+//タイマー
+let timer=setInterval(()=>{
+
+time--
+timeText.innerText=time
+
+if(time<=0){
+
+clearInterval(timer)
+
+if(score<10){
+
+alert("時間切れ！囚人に暗殺された…")
+location.reload()
+
+}
+
+}
+
+},1000)
 
 </script>
 
